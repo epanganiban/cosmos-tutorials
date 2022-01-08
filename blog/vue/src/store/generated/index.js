@@ -1,5 +1,8 @@
 // THIS FILE IS GENERATED AUTOMATICALLY. DO NOT MODIFY.
-export default {};
+import CosmonautBlogCosmonautBlogBlog from './cosmonaut/blog/cosmonaut.blog.blog';
+export default {
+    CosmonautBlogCosmonautBlogBlog: load(CosmonautBlogCosmonautBlogBlog, 'cosmonaut.blog.blog'),
+};
 function load(mod, fullns) {
     return function init(store) {
         if (store.hasModule([fullns])) {

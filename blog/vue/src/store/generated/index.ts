@@ -1,8 +1,10 @@
 // THIS FILE IS GENERATED AUTOMATICALLY. DO NOT MODIFY.
 
+import CosmonautBlogCosmonautBlogBlog from './cosmonaut/blog/cosmonaut.blog.blog'
 
 
 export default { 
+  CosmonautBlogCosmonautBlogBlog: load(CosmonautBlogCosmonautBlogBlog, 'cosmonaut.blog.blog'),
   
 }
 
