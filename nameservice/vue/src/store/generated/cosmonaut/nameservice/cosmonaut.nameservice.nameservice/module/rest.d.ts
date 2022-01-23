@@ -1,4 +1,6 @@
 export declare type NameserviceMsgBuyNameResponse = object;
+export declare type NameserviceMsgDeleteNameResponse = object;
+export declare type NameserviceMsgSetNameResponse = object;
 /**
  * Params defines the parameters for the module.
  */
