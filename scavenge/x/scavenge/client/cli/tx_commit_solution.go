@@ -1,7 +1,5 @@
 package cli
 
-// x/scavenge/client/cli/tx_commit_solution.go
-
 import (
 	"crypto/sha256"
 	"encoding/hex"
