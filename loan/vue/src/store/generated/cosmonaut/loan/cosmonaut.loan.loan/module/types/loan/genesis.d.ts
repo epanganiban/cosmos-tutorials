@@ -1,10 +1,13 @@
-import { Params } from "../loan/params";
 import { Writer, Reader } from "protobufjs/minimal";
+import { Params } from "../loan/params";
+import { Loan } from "../loan/loan";
 export declare const protobufPackage = "cosmonaut.loan.loan";
 /** GenesisState defines the loan module's genesis state. */
 export interface GenesisState {
-    /** this line is used by starport scaffolding # genesis/proto/state */
     params: Params | undefined;
+    loanList: Loan[];
+    /** this line is used by starport scaffolding # genesis/proto/state */
+    loanCount: number;
 }
 export declare const GenesisState: {
     encode(message: GenesisState, writer?: Writer): Writer;

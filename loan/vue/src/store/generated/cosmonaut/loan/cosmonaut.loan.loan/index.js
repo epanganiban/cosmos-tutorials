@@ -1,8 +1,9 @@
 import { txClient, queryClient, MissingWalletError, registry } from './module';
 // @ts-ignore
 import { SpVuexError } from '@starport/vuex';
+import { Loan } from "./module/types/loan/loan";
 import { Params } from "./module/types/loan/params";
-export { Params };
+export { Loan, Params };
 async function initTxClient(vuexGetters) {
     return await txClient(vuexGetters['common/wallet/signer'], {
         addr: vuexGetters['common/env/apiTendermint']
@@ -37,7 +38,10 @@ function getStructure(template) {
 const getDefaultState = () => {
     return {
         Params: {},
+        Loan: {},
+        LoanAll: {},
         _Structure: {
+            Loan: getStructure(Loan.fromPartial({})),
             Params: getStructure(Params.fromPartial({})),
         },
         _Registry: registry,
@@ -69,6 +73,18 @@ export default {
                 params.query = null;
             }
             return state.Params[JSON.stringify(params)] ?? {};
+        },
+        getLoan: (state) => (params = { params: {} }) => {
+            if (!params.query) {
+                params.query = null;
+            }
+            return state.Loan[JSON.stringify(params)] ?? {};
+        },
+        getLoanAll: (state) => (params = { params: {} }) => {
+            if (!params.query) {
+                params.query = null;
+            }
+            return state.LoanAll[JSON.stringify(params)] ?? {};
         },
         getTypeStructure: (state) => (type) => {
             return state._Structure[type].fields;
@@ -117,6 +133,38 @@ export default {
                 throw new SpVuexError('QueryClient:QueryParams', 'API Node Unavailable. Could not perform query: ' + e.message);
             }
         },
+        async QueryLoan({ commit, rootGetters, getters }, { options: { subscribe, all } = { subscribe: false, all: false }, params, query = null }) {
+            try {
+                const key = params ?? {};
+                const queryClient = await initQueryClient(rootGetters);
+                let value = (await queryClient.queryLoan(key.id)).data;
+                commit('QUERY', { query: 'Loan', key: { params: { ...key }, query }, value });
+                if (subscribe)
+                    commit('SUBSCRIBE', { action: 'QueryLoan', payload: { options: { all }, params: { ...key }, query } });
+                return getters['getLoan']({ params: { ...key }, query }) ?? {};
+            }
+            catch (e) {
+                throw new SpVuexError('QueryClient:QueryLoan', 'API Node Unavailable. Could not perform query: ' + e.message);
+            }
+        },
+        async QueryLoanAll({ commit, rootGetters, getters }, { options: { subscribe, all } = { subscribe: false, all: false }, params, query = null }) {
+            try {
+                const key = params ?? {};
+                const queryClient = await initQueryClient(rootGetters);
+                let value = (await queryClient.queryLoanAll(query)).data;
+                while (all && value.pagination && value.pagination.next_key != null) {
+                    let next_values = (await queryClient.queryLoanAll({ ...query, 'pagination.key': value.pagination.next_key })).data;
+                    value = mergeResults(value, next_values);
+                }
+                commit('QUERY', { query: 'LoanAll', key: { params: { ...key }, query }, value });
+                if (subscribe)
+                    commit('SUBSCRIBE', { action: 'QueryLoanAll', payload: { options: { all }, params: { ...key }, query } });
+                return getters['getLoanAll']({ params: { ...key }, query }) ?? {};
+            }
+            catch (e) {
+                throw new SpVuexError('QueryClient:QueryLoanAll', 'API Node Unavailable. Could not perform query: ' + e.message);
+            }
+        },
         async sendMsgRepayLoan({ rootGetters }, { value, fee = [], memo = '' }) {
             try {
                 const txClient = await initTxClient(rootGetters);
@@ -151,20 +199,20 @@ export default {
                 }
             }
         },
-        async sendMsgCancelLoan({ rootGetters }, { value, fee = [], memo = '' }) {
+        async sendMsgRequestLoan({ rootGetters }, { value, fee = [], memo = '' }) {
             try {
                 const txClient = await initTxClient(rootGetters);
-                const msg = await txClient.msgCancelLoan(value);
+                const msg = await txClient.msgRequestLoan(value);
                 const result = await txClient.signAndBroadcast([msg], { fee: { amount: fee,
                         gas: "200000" }, memo });
                 return result;
             }
             catch (e) {
                 if (e == MissingWalletError) {
-                    throw new SpVuexError('TxClient:MsgCancelLoan:Init', 'Could not initialize signing client. Wallet is required.');
+                    throw new SpVuexError('TxClient:MsgRequestLoan:Init', 'Could not initialize signing client. Wallet is required.');
                 }
                 else {
-                    throw new SpVuexError('TxClient:MsgCancelLoan:Send', 'Could not broadcast Tx: ' + e.message);
+                    throw new SpVuexError('TxClient:MsgRequestLoan:Send', 'Could not broadcast Tx: ' + e.message);
                 }
             }
         },
@@ -185,20 +233,20 @@ export default {
                 }
             }
         },
-        async sendMsgRequestLoan({ rootGetters }, { value, fee = [], memo = '' }) {
+        async sendMsgCancelLoan({ rootGetters }, { value, fee = [], memo = '' }) {
             try {
                 const txClient = await initTxClient(rootGetters);
-                const msg = await txClient.msgRequestLoan(value);
+                const msg = await txClient.msgCancelLoan(value);
                 const result = await txClient.signAndBroadcast([msg], { fee: { amount: fee,
                         gas: "200000" }, memo });
                 return result;
             }
             catch (e) {
                 if (e == MissingWalletError) {
-                    throw new SpVuexError('TxClient:MsgRequestLoan:Init', 'Could not initialize signing client. Wallet is required.');
+                    throw new SpVuexError('TxClient:MsgCancelLoan:Init', 'Could not initialize signing client. Wallet is required.');
                 }
                 else {
-                    throw new SpVuexError('TxClient:MsgRequestLoan:Send', 'Could not broadcast Tx: ' + e.message);
+                    throw new SpVuexError('TxClient:MsgCancelLoan:Send', 'Could not broadcast Tx: ' + e.message);
                 }
             }
         },
@@ -232,18 +280,18 @@ export default {
                 }
             }
         },
-        async MsgCancelLoan({ rootGetters }, { value }) {
+        async MsgRequestLoan({ rootGetters }, { value }) {
             try {
                 const txClient = await initTxClient(rootGetters);
-                const msg = await txClient.msgCancelLoan(value);
+                const msg = await txClient.msgRequestLoan(value);
                 return msg;
             }
             catch (e) {
                 if (e == MissingWalletError) {
-                    throw new SpVuexError('TxClient:MsgCancelLoan:Init', 'Could not initialize signing client. Wallet is required.');
+                    throw new SpVuexError('TxClient:MsgRequestLoan:Init', 'Could not initialize signing client. Wallet is required.');
                 }
                 else {
-                    throw new SpVuexError('TxClient:MsgCancelLoan:Create', 'Could not create message: ' + e.message);
+                    throw new SpVuexError('TxClient:MsgRequestLoan:Create', 'Could not create message: ' + e.message);
                 }
             }
         },
@@ -262,18 +310,18 @@ export default {
                 }
             }
         },
-        async MsgRequestLoan({ rootGetters }, { value }) {
+        async MsgCancelLoan({ rootGetters }, { value }) {
             try {
                 const txClient = await initTxClient(rootGetters);
-                const msg = await txClient.msgRequestLoan(value);
+                const msg = await txClient.msgCancelLoan(value);
                 return msg;
             }
             catch (e) {
                 if (e == MissingWalletError) {
-                    throw new SpVuexError('TxClient:MsgRequestLoan:Init', 'Could not initialize signing client. Wallet is required.');
+                    throw new SpVuexError('TxClient:MsgCancelLoan:Init', 'Could not initialize signing client. Wallet is required.');
                 }
                 else {
-                    throw new SpVuexError('TxClient:MsgRequestLoan:Create', 'Could not create message: ' + e.message);
+                    throw new SpVuexError('TxClient:MsgCancelLoan:Create', 'Could not create message: ' + e.message);
                 }
             }
         },

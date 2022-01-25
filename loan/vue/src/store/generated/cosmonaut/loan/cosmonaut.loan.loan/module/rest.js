@@ -140,6 +140,35 @@ export class Api extends HttpClient {
          * No description
          *
          * @tags Query
+         * @name QueryLoanAll
+         * @summary Queries a list of Loan items.
+         * @request GET:/cosmonaut/loan/loan/loan
+         */
+        this.queryLoanAll = (query, params = {}) => this.request({
+            path: `/cosmonaut/loan/loan/loan`,
+            method: "GET",
+            query: query,
+            format: "json",
+            ...params,
+        });
+        /**
+         * No description
+         *
+         * @tags Query
+         * @name QueryLoan
+         * @summary Queries a Loan by id.
+         * @request GET:/cosmonaut/loan/loan/loan/{id}
+         */
+        this.queryLoan = (id, params = {}) => this.request({
+            path: `/cosmonaut/loan/loan/loan/${id}`,
+            method: "GET",
+            format: "json",
+            ...params,
+        });
+        /**
+         * No description
+         *
+         * @tags Query
          * @name QueryParams
          * @summary Parameters queries the parameters of the module.
          * @request GET:/cosmonaut/loan/loan/params

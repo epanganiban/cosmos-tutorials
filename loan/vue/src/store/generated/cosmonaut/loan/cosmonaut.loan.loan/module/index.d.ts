@@ -3,9 +3,9 @@ import { Registry, OfflineSigner, EncodeObject } from "@cosmjs/proto-signing";
 import { Api } from "./rest";
 import { MsgRepayLoan } from "./types/loan/tx";
 import { MsgApproveLoan } from "./types/loan/tx";
-import { MsgCancelLoan } from "./types/loan/tx";
-import { MsgLiquidateLoan } from "./types/loan/tx";
 import { MsgRequestLoan } from "./types/loan/tx";
+import { MsgLiquidateLoan } from "./types/loan/tx";
+import { MsgCancelLoan } from "./types/loan/tx";
 export declare const MissingWalletError: Error;
 export declare const registry: Registry;
 interface TxClientOptions {
@@ -19,9 +19,9 @@ declare const txClient: (wallet: OfflineSigner, { addr: addr }?: TxClientOptions
     signAndBroadcast: (msgs: EncodeObject[], { fee, memo }?: SignAndBroadcastOptions) => any;
     msgRepayLoan: (data: MsgRepayLoan) => EncodeObject;
     msgApproveLoan: (data: MsgApproveLoan) => EncodeObject;
-    msgCancelLoan: (data: MsgCancelLoan) => EncodeObject;
-    msgLiquidateLoan: (data: MsgLiquidateLoan) => EncodeObject;
     msgRequestLoan: (data: MsgRequestLoan) => EncodeObject;
+    msgLiquidateLoan: (data: MsgLiquidateLoan) => EncodeObject;
+    msgCancelLoan: (data: MsgCancelLoan) => EncodeObject;
 }>;
 interface QueryClientOptions {
     addr: string;
